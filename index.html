@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>π Chroma</title>
+<title>π Chroma — A Study of the Infinite</title>
 <meta name="description" content="An art-gallery visualiser and pattern hunter for the decimal expansion of π.">
 <meta name="theme-color" content="#0b0b0f">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b0b0f'/%3E%3Ctext x='32' y='46' font-family='Georgia,serif' font-size='40' font-style='italic' fill='%23e9dfca' text-anchor='middle'%3Eπ%3C/text%3E%3C/svg%3E">
@@ -550,6 +550,69 @@ html[data-theme="light"] .lens-thumb{background:rgba(255,255,255,.72);box-shadow
 .map-hint span{color:var(--line-strong)}
 .map-hint.is-gone{opacity:0}
 
+/* match guide — target bearing, controls */
+.match-guide{
+  position:absolute;right:clamp(24px,3.4vw,52px);top:clamp(24px,4vh,44px);z-index:12;
+  width:312px;padding:14px 16px 13px;background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;box-shadow:var(--shadow);
+  backdrop-filter:blur(26px) saturate(1.06);-webkit-backdrop-filter:blur(26px) saturate(1.06);
+  animation:guideIn .4s var(--ease-out) both;
+}
+@keyframes guideIn{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.match-guide[hidden]{display:none}
+.guide-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.guide-head .eyebrow{font-size:7px}
+.guide-state{
+  display:flex;align-items:center;gap:5px;white-space:nowrap;
+  font-size:7px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+  transition:color .3s;
+}
+.guide-state::before{
+  content:"";width:5px;height:5px;border-radius:50%;background:var(--faint);
+  transition:background .3s,box-shadow .3s,opacity .3s;
+}
+.match-guide.is-onscreen .guide-state{color:var(--accent)}
+.match-guide.is-onscreen .guide-state::before{background:var(--accent);box-shadow:0 0 9px var(--accent-soft)}
+.match-guide.is-offscreen .guide-state::before{background:var(--accent);opacity:.55}
+.guide-main{display:flex;align-items:center;gap:12px;margin:12px 0 10px}
+.guide-compass{
+  position:relative;width:42px;height:42px;flex:none;border:1px solid var(--line);
+  border-radius:50%;background:var(--panel-soft);
+}
+.guide-compass::before{content:"";position:absolute;inset:6px;border:1px dashed var(--line-soft);border-radius:50%;opacity:.8}
+.guide-compass::after{
+  content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);transform:translate(-50%,-50%);opacity:0;transition:opacity .3s;
+}
+.match-guide.is-onscreen .guide-compass::after{opacity:1;box-shadow:0 0 0 4px var(--accent-soft)}
+.guide-needle{
+  position:absolute;inset:0;display:grid;place-items:center;
+  transform:rotate(var(--bearing,0deg));transition:transform .45s var(--ease-out),opacity .3s;
+}
+.guide-needle .icon{width:15px;height:15px;color:var(--accent)}
+.match-guide.is-onscreen .guide-needle{opacity:0}
+.guide-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.guide-coord{
+  font-family:var(--serif);font-weight:400;font-size:23px;line-height:1;letter-spacing:-.02em;
+  color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.guide-direction{
+  font-family:var(--mono);font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.guide-note{font-family:var(--serif);font-size:11.5px;line-height:1.45;color:var(--muted);margin:0 0 12px}
+.guide-actions{display:flex;gap:6px}
+.guide-actions .btn-line{height:30px;font-size:7.5px;padding:0 10px}
+.guide-center{flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+.guide-center .icon{width:11px;height:11px}
+.guide-stop{
+  height:30px;padding:0 10px;border:1px solid transparent;border-radius:99px;
+  font-size:7.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+  transition:color .2s,border-color .2s,background .2s;
+}
+.guide-stop:hover{color:var(--text);border-color:var(--line);background:var(--panel-soft)}
+.guide-stop:active{transform:translateY(1px)}
+
 /* inspector plaque */
 .inspector{
   position:fixed;z-index:140;width:252px;padding:14px 16px 12px;
@@ -624,7 +687,13 @@ html[data-theme="light"] .inspector-tile{color:rgba(12,12,16,.72)}
   .play-btn{width:36px;height:36px}
   .jump>label{display:none}
   .finding{top:auto;bottom:92px;right:22px;transform:none;width:270px}
+  .match-guide{right:22px;top:22px;width:286px}
   @keyframes findIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+}
+@media (max-height:720px){
+  .guide-note{display:none}
+  .match-guide{padding-bottom:12px}
+  .guide-main{margin-bottom:11px}
 }
 @media (max-width:760px){
   .explorer{overflow:auto}
@@ -647,10 +716,12 @@ html[data-theme="light"] .inspector-tile{color:rgba(12,12,16,.72)}
   .jump-field{width:100%}
   .jump-field input{width:100%;min-width:0}
   .finding{left:18px;right:18px;width:auto;bottom:84px}
+  .match-guide{left:auto;right:18px;top:96px;width:min(260px,calc(100vw - 36px))}
   .map-head .map-title{font-size:28px}
   .inspector{width:230px}
 }
 @media (max-width:520px){
+  .match-guide{width:min(244px,calc(100vw - 36px))}
   .flow-block{display:none}
   .transport{padding:0 10px 0 8px}
   .map-head .live-position{display:none}
@@ -984,6 +1055,27 @@ html[data-theme="dark"] .swatch em{color:var(--faint)}
 
       <div class="map-hint" id="map-hint">Right-drag to pan <span>·</span> Scroll to zoom <span>·</span> Left-click a digit to inspect</div>
 
+      <aside class="match-guide" id="match-guide" hidden aria-label="Match guide">
+        <div class="guide-head">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> MATCH GUIDE</span>
+          <span class="guide-state" id="guide-state">ON SCREEN</span>
+        </div>
+        <div class="guide-main">
+          <div class="guide-compass" aria-hidden="true">
+            <span class="guide-needle" id="guide-needle"><svg class="icon"><use href="#i-arrow"/></svg></span>
+          </div>
+          <div class="guide-copy">
+            <strong class="guide-coord" id="guide-coord">#0</strong>
+            <span class="guide-direction" id="guide-direction">CENTRED</span>
+          </div>
+        </div>
+        <p class="guide-note" id="guide-note">The exact block is inside the brackets.</p>
+        <div class="guide-actions">
+          <button class="btn-line guide-center" id="guide-center" type="button"><svg class="icon"><use href="#i-spark"/></svg>Centre match</button>
+          <button class="guide-stop" id="guide-stop" type="button">Stop guide</button>
+        </div>
+      </aside>
+
       <div class="horizon-card" id="horizon-card" hidden>
         <button class="finding-close" id="horizon-close" type="button" aria-label="Close"><svg class="icon"><use href="#i-close"/></svg></button>
         <div class="eyebrow"><span class="eyebrow-dot"></span> EDGE OF THE MAP</div>
@@ -1009,7 +1101,7 @@ html[data-theme="dark"] .swatch em{color:var(--faint)}
         <div class="finding-index" id="finding-index">#0</div>
         <p class="finding-desc" id="finding-desc">The first exact occurrence of your study within the mapped digits.</p>
         <div class="finding-actions">
-          <button class="btn-line" id="finding-reveal" type="button">Reveal again</button>
+          <button class="btn-line" id="finding-reveal" type="button">Guide again</button>
           <button class="btn-line" id="finding-export" type="button">Export</button>
         </div>
       </aside>
@@ -2517,7 +2609,7 @@ html[data-theme="dark"] .swatch em{color:var(--faint)}
     if (card) card.hidden = true;
     S.preview = null;
     S.lastResult = null;
-    map.highlight = null;
+    clearGuide();
     map.pinned = null;
     map.hover = null;
     const insp = $('#inspector');
@@ -2780,9 +2872,11 @@ html[data-theme="dark"] .swatch em{color:var(--faint)}
     document.addEventListener('keydown', (e) => {
       const typing = /input|textarea|select/i.test((e.target && e.target.tagName) || '');
       if (e.key === 'Escape') {
+        const modalOpen = !$('#extend-modal').hidden;
         closePopovers();
         unpinInspector();
         closeExtendModal();
+        if (!typing && !modalOpen && map.guide) stopGuide();
         if (typing && e.target.blur) e.target.blur();
         return;
       }
@@ -2878,6 +2972,10 @@ const map = {
   pinned: null,
   pointer: { x: 0, y: 0, inside: false },
   highlight: null,
+  guide: null,
+  guideHudKey: '',
+  guideHudRect: null,
+  guideHudShift: { x: 0, y: 0 },
   lastLive: '',
   modeTimer: null,
   mosaic: null,
@@ -2958,7 +3056,17 @@ function bindMap() {
     if (!S.lastResult) return;
     const best = resultAnchor(S.lastResult);
     if (!best) return;
+    const span = S.lastResult.mode === 'rows'
+      ? Math.max(1, best.span || 1)
+      : Math.max(1, S.lastResult.span || 1);
+    startGuide(best.index, span);
     flyToIndex(best.index);
+    Sound.mode();
+  });
+  $('#guide-stop').addEventListener('click', stopGuide);
+  $('#guide-center').addEventListener('click', () => {
+    if (!map.guide) return;
+    flyToIndex(map.guide.start);
     Sound.mode();
   });
   $('#finding-export').addEventListener('click', () => exportPiece('finding'));
@@ -3068,6 +3176,9 @@ function resizeMap() {
   map.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   map.octx.setTransform(dpr, 0, 0, dpr, 0, 0);
   map.mosaicCols = 0;
+  map.guideHudKey = '';
+  map.guideHudRect = null;
+  setGuideHudShift(0, 0);
   clampCameras();
   map.dirty = true;
   drawMap();
@@ -3126,6 +3237,8 @@ function mapLoop(now) {
   if (map.playing) { stepAuto(dt); moving = true; }
   if (map.fly) { stepFly(now); moving = true; }
   if (moving) { map.dirty = true; map.overlayDirty = true; }
+  // The guide breathes: keep its reticle and bearing live while it is active.
+  if (map.guide) map.overlayDirty = true;
   if (map.dirty) renderBase();
   if (map.dirty || map.overlayDirty) renderOverlay();
   map.dirty = false;
@@ -3345,15 +3458,17 @@ function renderOverlay() {
   if (!map.ready || !map.octx) return;
   const ctx = map.octx;
   ctx.clearRect(0, 0, map.w, map.h);
-  if (!S.LEN) return;
+  if (!S.LEN) { syncGuideHUD(); return; }
   const accent = S.theme === 'dark' ? '207,178,122' : '138,107,55';
   if (map.highlight) {
     drawHighlightOverlay(ctx, accent);
   }
+  if (map.guide) drawGuideOverlay(ctx, accent);
   if (map.pinned !== null) drawIndexMarker(ctx, map.pinned, accent, 2, 9);
   if (map.hover !== null && map.pinned === null) {
     drawIndexMarker(ctx, map.hover, S.theme === 'dark' ? '255,255,255' : '22,22,26', 1.4, 0);
   }
+  syncGuideHUD();
   map.overlayDirty = false;
 }
 
@@ -3363,6 +3478,10 @@ function drawHighlightOverlay(ctx, accent) {
   const start = h.start, length = Math.max(1, h.length || 1);
   const end = start + length - 1;
   ctx.save();
+  if (map.guide) {
+    ctx.shadowColor = 'rgba(' + accent + ',.5)';
+    ctx.shadowBlur = 9;
+  }
   ctx.fillStyle = 'rgba(' + accent + ',.13)';
   ctx.strokeStyle = 'rgba(' + accent + ',.88)';
   ctx.lineWidth = 1.2;
@@ -3421,6 +3540,428 @@ function drawHighlightOverlay(ctx, accent) {
       if (length === 1) ctx.fillStyle = 'rgba(' + accent + ',.22)', ctx.fillRect(x, y, tile, tile);
     }
   }
+  ctx.restore();
+}
+
+/* ------------------------------------------------------------
+   Match guide — exact reticle, edge bearing, live HUD
+   ------------------------------------------------------------ */
+function startGuide(start, length) {
+  if (!S.LEN || start === undefined || start === null) return;
+  const safeStart = clamp(Math.round(start), 0, Math.max(0, S.LEN - 1));
+  const safeLength = Math.max(1, Math.round(length || 1));
+  map.guide = { start: safeStart, length: safeLength };
+  map.guideHudKey = '';
+  map.guideHudRect = null;
+  setGuideHudShift(0, 0);
+  map.highlight = { start: safeStart, length: safeLength };
+  map.overlayDirty = true;
+  mapDirty();
+  hideMapHint();
+  syncGuideHUD();
+}
+
+function stopGuide() {
+  if (!map.guide) return;
+  map.guide = null;
+  map.guideHudKey = '';
+  map.guideHudRect = null;
+  setGuideHudShift(0, 0);
+  map.overlayDirty = true;
+  syncGuideHUD();
+  Sound.soft();
+}
+
+function clearGuide() {
+  map.guide = null;
+  map.guideHudKey = '';
+  map.guideHudRect = null;
+  setGuideHudShift(0, 0);
+  map.highlight = null;
+  map.overlayDirty = true;
+  syncGuideHUD();
+}
+
+function guideViewCenterIndex() {
+  if (map.mode === 'tapestry') {
+    const t = map.tapestry, cell = t.cell;
+    const cols = Math.ceil(map.w / cell) + 1;
+    const rows = Math.ceil(map.h / cell) + 2;
+    return Math.max(0, Math.floor(t.top) + Math.floor(rows / 2) * cols + Math.floor(cols / 2));
+  }
+  if (map.mode === 'deep') {
+    const d = map.deep, cell = d.cell;
+    const cols = Math.ceil(map.w / cell) + 2;
+    const rows = Math.ceil(map.h / cell) + 2;
+    return Math.max(0, Math.floor(d.y + rows / 2) * d.rowW + Math.floor(d.x + cols / 2));
+  }
+  const sp = map.spiral;
+  return Math.max(0, Math.floor(sp.start) + Math.floor((sp.N || 0) / 2));
+}
+
+function guideRawPoint(index) {
+  if (map.mode === 'tapestry') {
+    const t = map.tapestry, cell = t.cell;
+    const cols = Math.ceil(map.w / cell) + 1;
+    const rel = index - Math.floor(t.top);
+    const row = Math.floor(rel / cols);
+    const col = rel - row * cols;
+    return { x: (col + 0.5) * cell, y: (row + 0.5) * cell - t.phase * cell };
+  }
+  if (map.mode === 'deep') {
+    const d = map.deep, cell = d.cell;
+    const row = Math.floor(index / d.rowW), col = index % d.rowW;
+    return { x: (col - d.x + 0.5) * cell, y: (row - d.y + 0.5) * cell };
+  }
+  const sp = map.spiral;
+  const off = index - Math.floor(sp.start);
+  if (off >= 0 && off < sp.N && sp.xs) {
+    return { x: map.w / 2 + sp.xs[off], y: map.h / 2 + sp.ys[off] };
+  }
+  return { x: off < 0 ? -map.w : map.w * 2, y: map.h / 2 };
+}
+
+function guideEdgePoint(cx, cy, dx, dy) {
+  const pad = clamp(Math.min(map.w, map.h) * 0.085, 42, 66);
+  const minX = pad, maxX = map.w - pad, minY = pad, maxY = map.h - pad;
+  const sx = dx > 0 ? (maxX - cx) / dx : dx < 0 ? (minX - cx) / dx : Infinity;
+  const sy = dy > 0 ? (maxY - cy) / dy : dy < 0 ? (minY - cy) / dy : Infinity;
+  const s = Math.min(sx, sy);
+  const side = sx <= sy ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'bottom' : 'top');
+  return { x: cx + dx * s, y: cy + dy * s, side };
+}
+
+function setGuideHudShift(x, y) {
+  const sx = Math.round(x || 0), sy = Math.round(y || 0);
+  map.guideHudShift = { x: sx, y: sy };
+  const hud = $('#match-guide');
+  if (!hud) return;
+  if (sx || sy) hud.style.translate = sx + 'px ' + sy + 'px';
+  else hud.style.translate = '';
+}
+
+function guideHudBaseRect() {
+  const hud = $('#match-guide');
+  const stage = $('#stage-explorer');
+  if (!hud || !stage || hud.hidden) return null;
+  if (hud.offsetWidth < 2 || hud.offsetHeight < 2) return null;
+  if (hud.offsetParent === stage) {
+    return { x: hud.offsetLeft, y: hud.offsetTop, w: hud.offsetWidth, h: hud.offsetHeight };
+  }
+  const hr = hud.getBoundingClientRect();
+  const sr = stage.getBoundingClientRect();
+  if (hr.width < 2 || hr.height < 2) return null;
+  const shift = map.guideHudShift || { x: 0, y: 0 };
+  return {
+    x: hr.left - sr.left - shift.x,
+    y: hr.top - sr.top - shift.y,
+    w: hr.width,
+    h: hr.height
+  };
+}
+
+function guideMeasureHud() {
+  const base = guideHudBaseRect();
+  if (!base) return null;
+  const shift = map.guideHudShift || { x: 0, y: 0 };
+  return { x: base.x + shift.x, y: base.y + shift.y, w: base.w, h: base.h };
+}
+
+function guideRectsOverlap(a, b, gap) {
+  const g = gap || 0;
+  return a.x < b.x + b.w + g && a.x + a.w > b.x - g &&
+    a.y < b.y + b.h + g && a.y + a.h > b.y - g;
+}
+
+function guideHudObstacles() {
+  const stage = $('#stage-explorer');
+  if (!stage) return [];
+  const sr = stage.getBoundingClientRect();
+  const out = [];
+  const selectors = ['.map-head', '#explorer-finding', '#transport', '.left-rail', '#horizon-card'];
+  for (let i = 0; i < selectors.length; i++) {
+    const el = $(selectors[i]);
+    if (!el || el.hidden) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) continue;
+    out.push({ x: r.left - sr.left, y: r.top - sr.top, w: r.width, h: r.height });
+  }
+  return out;
+}
+
+function guidePlaceHud(info) {
+  const base = guideHudBaseRect();
+  if (!base) return;
+  if (!info || !info.onScreen || !info.rect) {
+    setGuideHudShift(0, 0);
+    return;
+  }
+  const target = info.rect;
+  const gap = 34;
+  const baseRect = { x: base.x, y: base.y, w: base.w, h: base.h };
+  if (!guideRectsOverlap(baseRect, target, gap)) {
+    setGuideHudShift(0, 0);
+    return;
+  }
+  const margin = 12;
+  const obstacles = guideHudObstacles();
+  const choices = [
+    { x: (target.x - gap) - (base.x + base.w), y: 0 },
+    { x: (target.x + target.w + gap) - base.x, y: 0 },
+    { x: 0, y: (target.y - gap) - (base.y + base.h) },
+    { x: 0, y: (target.y + target.h + gap) - base.y }
+  ];
+  let best = null;
+  const maxX = map.w - margin - base.w;
+  const maxY = map.h - margin - base.h;
+  for (let i = 0; i < choices.length; i++) {
+    const choice = choices[i];
+    let x = base.x + choice.x;
+    let y = base.y + choice.y;
+    if (x < margin) x = margin;
+    if (x > maxX) x = maxX;
+    if (y < margin) y = margin;
+    if (y > maxY) y = maxY;
+    const rect = { x: x, y: y, w: base.w, h: base.h };
+    if (guideRectsOverlap(rect, target, 18)) continue;
+    let penalty = 0;
+    for (let k = 0; k < obstacles.length; k++) {
+      const o = obstacles[k];
+      if (!guideRectsOverlap(rect, o, 8)) continue;
+      const ix = Math.max(0, Math.min(rect.x + rect.w, o.x + o.w) - Math.max(rect.x, o.x));
+      const iy = Math.max(0, Math.min(rect.y + rect.h, o.y + o.h) - Math.max(rect.y, o.y));
+      penalty += 100000 + ix * iy;
+    }
+    const dx = x - base.x, dy = y - base.y;
+    const score = Math.abs(dx) + Math.abs(dy) + penalty;
+    if (!best || score < best.score) best = { score: score, x: dx, y: dy };
+  }
+  if (best) setGuideHudShift(best.x, best.y);
+  else setGuideHudShift(0, 0);
+}
+
+function guideAvoidHud(edge, hud) {
+  if (!edge || !hud) return edge;
+  const gap = 34;
+  const overlapsX = edge.x > hud.x - gap && edge.x < hud.x + hud.w + gap;
+  const overlapsY = edge.y > hud.y - gap && edge.y < hud.y + hud.h + gap;
+  if (!overlapsX || !overlapsY) return edge;
+  if (edge.side === 'top' || edge.side === 'bottom') {
+    const left = hud.x - gap - 18;
+    if (left > 34) edge.x = left;
+    else edge.y = clamp(hud.y + hud.h + gap, 40, map.h - 40);
+  } else {
+    const below = hud.y + hud.h + gap;
+    edge.y = below < map.h - 34 ? below : Math.max(34, hud.y - gap);
+  }
+  return edge;
+}
+
+function guideGeometry() {
+  const g = map.guide;
+  if (!g || !map.ready) return null;
+  const rect = indexScreenRect(g.start);
+  const onScreen = !!rect &&
+    rect.x + rect.w / 2 > 2 && rect.x + rect.w / 2 < map.w - 2 &&
+    rect.y + rect.h / 2 > 2 && rect.y + rect.h / 2 < map.h - 2;
+  const cx = map.w / 2, cy = map.h / 2;
+  const centreIndex = guideViewCenterIndex();
+  const distance = Math.abs(g.start - centreIndex);
+  if (onScreen) {
+    return {
+      rect, onScreen: true, centreIndex, distance, edge: null,
+      direction: distance <= 2 ? 'CENTRED' : 'IN VIEW',
+      note: distance <= 2 ? 'The exact block is centred.' : fmt(distance) + ' digits from centre · target in view.',
+      angle: 90
+    };
+  }
+  let dx = 0, dy = -1;
+  const raw = guideRawPoint(g.start);
+  dx = raw.x - cx;
+  dy = raw.y - cy;
+  if (!dx && !dy) dy = -1;
+  let direction;
+  let note;
+  let away = distance;
+  if (map.mode === 'spiral') {
+    const sp = map.spiral;
+    const first = Math.floor(sp.start);
+    const last = first + Math.max(0, (sp.N || 1) - 1);
+    const earlier = g.start < first;
+    direction = earlier ? 'EARLIER' : 'LATER';
+    away = earlier ? first - g.start : Math.max(0, g.start - last);
+    note = earlier ? 'Rewind the coil, or centre the match.' : 'Advance the coil, or centre the match.';
+  } else {
+    const names = ['RIGHT', 'DOWN-RIGHT', 'DOWN', 'DOWN-LEFT', 'LEFT', 'UP-LEFT', 'UP', 'UP-RIGHT'];
+    const angleRad = Math.atan2(dy, dx);
+    direction = names[(Math.round(angleRad / (Math.PI / 4)) + 8) % 8];
+    note = 'Follow the edge arrow, or centre the match.';
+  }
+  const edge = guideAvoidHud(guideEdgePoint(cx, cy, dx, dy), map.guideHudRect);
+  return {
+    rect, onScreen: false, centreIndex, distance: away, edge,
+    direction, note, angle: Math.atan2(dy, dx) * 180 / Math.PI
+  };
+}
+
+function syncGuideHUD() {
+  const hud = $('#match-guide');
+  if (!hud) return;
+  if (!map.guide || !S.LEN) {
+    if (!hud.hidden) hud.hidden = true;
+    if (map.guideHudShift.x || map.guideHudShift.y) setGuideHudShift(0, 0);
+    map.guideHudKey = '';
+    map.guideHudRect = null;
+    return;
+  }
+  const info = guideGeometry();
+  if (!info) {
+    hud.hidden = true;
+    if (map.guideHudShift.x || map.guideHudShift.y) setGuideHudShift(0, 0);
+    map.guideHudKey = '';
+    map.guideHudRect = null;
+    return;
+  }
+  const coord = '#' + fmt(map.guide.start);
+  const state = info.onScreen ? 'ON SCREEN' : 'OFF SCREEN';
+  let direction;
+  if (info.onScreen) {
+    direction = info.distance <= 2 ? 'CENTRED' : 'IN VIEW';
+  } else if (map.mode === 'spiral') {
+    direction = info.direction + ' BY ' + fmt(info.distance) + ' DIGITS';
+  } else {
+    direction = info.direction + ' · ' + fmt(info.distance) + ' DIGITS AWAY';
+  }
+  const targetKey = info.onScreen && info.rect
+    ? Math.round(info.rect.x) + ',' + Math.round(info.rect.y)
+    : 'offscreen';
+  const key = coord + '|' + state + '|' + direction + '|' + info.note + '|' + Math.round(info.angle) + '|' + targetKey;
+  hud.hidden = false;
+  hud.classList.toggle('is-onscreen', info.onScreen);
+  hud.classList.toggle('is-offscreen', !info.onScreen);
+  if (map.guideHudKey === key && map.guideHudRect) return;
+  map.guideHudKey = key;
+  const coordEl = $('#guide-coord');
+  const stateEl = $('#guide-state');
+  const dirEl = $('#guide-direction');
+  const noteEl = $('#guide-note');
+  if (coordEl) coordEl.textContent = coord;
+  if (stateEl) stateEl.textContent = state;
+  if (dirEl) dirEl.textContent = direction;
+  if (noteEl) noteEl.textContent = info.note;
+  hud.style.setProperty('--bearing', info.angle.toFixed(1) + 'deg');
+  guidePlaceHud(info);
+  map.guideHudRect = guideMeasureHud();
+}
+
+function drawGuideOverlay(ctx, accent) {
+  const info = guideGeometry();
+  if (!info) return;
+  const pulse = reducedMotion ? 0.5 : (Math.sin(performance.now() / 380) + 1) / 2;
+  if (info.onScreen && info.rect) drawGuideReticle(ctx, info.rect, accent, pulse);
+  else if (info.edge) drawGuideArrow(ctx, info.edge, info.angle, accent, pulse);
+}
+
+function drawGuideReticle(ctx, rect, accent, pulse) {
+  const cx = rect.x + rect.w / 2, cy = rect.y + rect.h / 2;
+  const size = Math.max(rect.w, rect.h);
+  const half = Math.max(10, size / 2 + 5 + pulse * 4);
+  const arm = clamp(half * 0.52, 5, 15);
+  const under = S.theme === 'dark' ? 'rgba(8,8,12,.66)' : 'rgba(250,248,242,.82)';
+  ctx.save();
+  ctx.fillStyle = 'rgba(' + accent + ',.16)';
+  ctx.fillRect(rect.x + 1, rect.y + 1, Math.max(1, rect.w - 2), Math.max(1, rect.h - 2));
+  ctx.strokeStyle = 'rgba(' + accent + ',' + (0.30 - pulse * 0.18).toFixed(3) + ')';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(cx, cy, half + 7 + pulse * 7, 0, Math.PI * 2);
+  ctx.stroke();
+  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  const brackets = (color, width) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    for (let i = 0; i < corners.length; i++) {
+      const sx = corners[i][0], sy = corners[i][1];
+      const x = cx + sx * half, y = cy + sy * half;
+      ctx.moveTo(x - sx * arm, y);
+      ctx.lineTo(x, y);
+      ctx.lineTo(x, y - sy * arm);
+    }
+    ctx.stroke();
+  };
+  brackets(under, 3.4);
+  brackets('rgba(' + accent + ',.95)', 1.6);
+  const above = cy - half > 28;
+  const tip = above
+    ? Math.min(rect.y, cy - half) - 8 - pulse * 5
+    : Math.max(rect.y + rect.h, cy + half) + 8 + pulse * 5;
+  const dir = above ? 1 : -1;
+  if (tip > 14 && tip < map.h - 14) {
+    ctx.fillStyle = under;
+    ctx.beginPath();
+    ctx.moveTo(cx, tip + dir * 8);
+    ctx.lineTo(cx - 6.5, tip - dir * 3);
+    ctx.lineTo(cx + 6.5, tip - dir * 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(' + accent + ',.98)';
+    ctx.beginPath();
+    ctx.moveTo(cx, tip + dir * 5.5);
+    ctx.lineTo(cx - 4.4, tip - dir * 2);
+    ctx.lineTo(cx + 4.4, tip - dir * 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGuideArrow(ctx, p, angle, accent, pulse) {
+  const rad = angle * Math.PI / 180;
+  const ux = Math.cos(rad), uy = Math.sin(rad);
+  const backing = S.theme === 'dark' ? 'rgba(10,10,14,.72)' : 'rgba(251,249,244,.86)';
+  ctx.save();
+  for (let i = 1; i <= 2; i++) {
+    const d = 20 + i * 10;
+    const x = p.x - ux * d, y = p.y - uy * d;
+    if (x < 8 || x > map.w - 8 || y < 8 || y > map.h - 8) continue;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rad);
+    ctx.strokeStyle = 'rgba(' + accent + ',' + (0.42 - i * 0.12).toFixed(3) + ')';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-3.8, -5);
+    ctx.lineTo(2.2, 0);
+    ctx.lineTo(-3.8, 5);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 17, 0, Math.PI * 2);
+  ctx.fillStyle = backing;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(' + accent + ',' + (0.48 + pulse * 0.22).toFixed(3) + ')';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 21 + pulse * 9, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(' + accent + ',' + (0.24 - pulse * 0.16).toFixed(3) + ')';
+  ctx.stroke();
+  ctx.save();
+  ctx.translate(p.x, p.y);
+  ctx.rotate(rad);
+  ctx.fillStyle = 'rgba(' + accent + ',.98)';
+  ctx.shadowColor = 'rgba(' + accent + ',.75)';
+  ctx.shadowBlur = 8;
+  ctx.beginPath();
+  ctx.moveTo(9.5, 0);
+  ctx.lineTo(-4.5, 6);
+  ctx.lineTo(-1.6, 0);
+  ctx.lineTo(-4.5, -6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
   ctx.restore();
 }
 
@@ -3978,11 +4519,8 @@ function revealSearchResult(result, rowPick) {
   $('#finding-desc').textContent = desc;
   const card = $('#explorer-finding');
   card.hidden = false;
-  if (isRows) {
-    map.highlight = { start: best.index, length: Math.max(1, best.span || 1) };
-  } else {
-    map.highlight = { start: best.index, length: Math.max(1, result.span || 1) };
-  }
+  const span = isRows ? Math.max(1, best.span || 1) : Math.max(1, result.span || 1);
+  startGuide(best.index, span);
   map.overlayDirty = true;
   hideHorizon();
   pauseAuto();
@@ -4007,8 +4545,7 @@ function revealSearchResult(result, rowPick) {
 function closeFinding() {
   const card = $('#explorer-finding');
   if (card) card.hidden = true;
-  map.highlight = null;
-  map.overlayDirty = true;
+  clearGuide();
   S.lastResult = null;
   drawMap();
 }
